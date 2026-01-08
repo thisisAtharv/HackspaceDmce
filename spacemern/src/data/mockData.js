@@ -1,21 +1,30 @@
 export const upcomingEvents = [
   {
     id: 1,
-    title: "ISS Pass - Mumbai",
-    time: "Today, 19:45 IST",
-    lat: 19.0760, lng: 72.8777, alt: 0.6, color: "#00ffff"
+    title: "Aurora Borealis (Northern Lights)", // Explicitly mentioned in PS
+    time: "Tonight, 22:00 - 04:00",
+    lat: 64.9631, lng: -19.0208, // Iceland coordinates
+    alt: 0.2, color: "#4ade80", // Green Glow
+    visibility: "High (Kp Index 7)",
+    type: "aurora"
   },
   {
     id: 2,
-    title: "Perseid Meteor Shower",
-    time: "Jan 12, 02:00 AM",
-    lat: 40.7128, lng: -74.0060, alt: 0.2, color: "#ff00ff"
+    title: "Planetary Alignment (Mars-Venus)", // Explicitly mentioned in PS
+    time: "Jan 15, 05:30 AM",
+    lat: 19.0760, lng: 72.8777, // Mumbai
+    alt: 0.5, color: "#facc15", // Yellow
+    visibility: "Visible in East",
+    type: "alignment"
   },
   {
     id: 3,
-    title: "Saturn Opposition",
-    time: "Jan 14, 21:00 IST",
-    lat: -33.8688, lng: 151.2093, alt: 0.2, color: "#fbbf24"
+    title: "Sentinel-1 Flood Scan", // Connects to "Disaster Prediction"
+    time: "Live Pass",
+    lat: 20.5937, lng: 78.9629,
+    alt: 0.8, color: "#ef4444", // Red for emergency
+    visibility: "Scanning Data...",
+    type: "satellite"
   }
 ];
 
