@@ -1,34 +1,37 @@
 export const upcomingEvents = [
   {
     id: 1,
-    title: "Aurora Borealis (Northern Lights)", // Explicitly mentioned in PS
+    title: "Aurora Borealis (Northern Lights)",
     time: "Tonight, 22:00 - 04:00",
-    lat: 64.9631, lng: -19.0208, // Iceland coordinates
-    alt: 0.2, color: "#4ade80", // Green Glow
+    region: "Visible in: Iceland, Norway, Northern Canada", 
+    lat: 64.9631, lng: -19.0208,
+    alt: 0.2, color: "#4ade80",
     visibility: "High (Kp Index 7)",
     type: "aurora"
   },
   {
     id: 2,
-    title: "Planetary Alignment (Mars-Venus)", // Explicitly mentioned in PS
+    title: "Planetary Alignment (Mars-Venus)",
     time: "Jan 15, 05:30 AM",
-    lat: 19.0760, lng: 72.8777, // Mumbai
-    alt: 0.5, color: "#facc15", // Yellow
+    region: "Visible in: Mumbai, Pune (Eastern Horizon)",
+    lat: 19.0760, lng: 72.8777,
+    alt: 0.5, color: "#facc15",
     visibility: "Visible in East",
     type: "alignment"
   },
   {
     id: 3,
-    title: "Sentinel-1 Flood Scan", // Connects to "Disaster Prediction"
+    title: "Sentinel-1 Flood Scan",
     time: "Live Pass",
+    region: "Target: Maharashtra Flood Zones",
     lat: 20.5937, lng: 78.9629,
-    alt: 0.8, color: "#ef4444", // Red for emergency
+    alt: 0.8, color: "#ef4444",
     visibility: "Scanning Data...",
     type: "satellite"
   }
 ];
 
-// Append this to the bottom of src/data/mockData.js
+
 
 export const missionsList = [
   {
