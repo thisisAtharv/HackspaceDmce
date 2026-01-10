@@ -1,0 +1,204 @@
+:root {
+  --bg-color: #020617;       /* Very dark blue/black */
+  --card-bg: rgba(30, 41, 59, 0.7); /* Glassy blue */
+  --text-primary: #f8fafc;   /* Whiteish */
+  --text-secondary: #94a3b8; /* Greyish */
+  --accent: #06b6d4;         /* Cyan */
+  --border: rgba(148, 163, 184, 0.2);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: #0f172a;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--accent);
+  margin-bottom: 40px;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.nav-btn:hover, .nav-btn.active {
+  background-color: rgba(6, 182, 212, 0.1);
+  color: var(--accent);
+}
+
+/* Main Dashboard */
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* 3 Columns */
+  grid-template-rows: auto auto;
+  gap: 20px;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.status-badge {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.status-badge.warning {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+}
+
+/* Specific Card Layouts */
+.weather-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.globe-card {
+  grid-column: span 2; /* Takes up 2 columns */
+  grid-row: span 2;    /* Takes up 2 rows */
+  height: 500px;
+  padding: 0; /* No padding for map */
+  overflow: hidden;
+  position: relative;
+}
+
+.event-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.event-item:last-child {
+  border-bottom: none;
+}
+
+/* Timeline Styles */
+.timeline-container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  padding: 20px 0;
+}
+
+/* The vertical line */
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 20px; /* Adjust based on design */
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(148, 163, 184, 0.3);
+}
+
+.mission-card {
+  margin-left: 50px; /* Space for the line */
+  margin-bottom: 30px;
+  position: relative;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+/* The dot on the timeline */
+.mission-card::before {
+  content: '';
+  position: absolute;
+  left: -36px; /* Positions dot on the line */
+  top: 25px;
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.agency-tag {
+  font-size: 0.8rem;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 10px;
+}

@@ -50,7 +50,7 @@ const GlobeView = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 // If you still need to nudge it left/right, use transform:
-                transform: 'translateX(-2%)' // Moves globe slightly left. Change to positive to move right.
+                transform: 'translateX(-1%)' // Moves globe slightly left. Change to positive to move right.
             }}>
                 <Globe
                     ref={globeEl}
