@@ -1,83 +1,83 @@
-// src/components/GlobeView.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Globe from 'react-globe.gl';
-import { upcomingEvents } from '../data/mockData';
+import { globeMarkers } from '../data/mockData';
 
-const GlobeView = () => {
-    const globeEl = useRef();
+const GlobeView = ({ markers }) => {
+  const globeEl = useRef();
+  const containerRef = useRef(); // New ref for the container
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 }); // Default state
 
-    useEffect(() => {
-        if (globeEl.current) {
-            globeEl.current.controls().autoRotate = true;
-            globeEl.current.controls().autoRotateSpeed = 0.6;
-            
-            // ZOOM OUT: Increased altitude to 3.5 to make globe appear smaller
-            // ADJUST ANGLE: Changed lat/lng to center the view better
-            globeEl.current.pointOfView({ lat: 20, lng: 72, altitude: 3.5 });
-        }
-    }, []);
+  // Use passed markers, OR default to launch sites
+  const activeData = markers || globeMarkers;
 
-    return (
-        <div style={{
-            width: '100%',
-            height: '100%',
-            position: 'relative', // This keeps the text anchored to the CARD, not the globe
-            overflow: 'hidden',   // Hides any globe overflow
-            borderRadius: '16px'  // Matches your card radius
-        }}>
-            
-            {/* 1. THE TEXT OVERLAY (Stays Fixed) */}
-            <div style={{
-                position: 'absolute',
-                top: '20px',
-                left: '20px',
-                zIndex: 20, // High z-index ensures it sits ON TOP of the globe
-                background: 'rgba(0,0,0,0.6)',
-                padding: '5px 10px',
-                borderRadius: '5px',
-                fontWeight: 'bold',
-                color: 'white',
-                pointerEvents: 'none' // Lets clicks pass through to the map
-            }}>
-                LIVE EARTH VIEW
-            </div>
+  useEffect(() => {
+    // 1. Auto-rotate
+    if (globeEl.current) {
+      globeEl.current.controls().autoRotate = true;
+      globeEl.current.controls().autoRotateSpeed = 0.5;
+    }
 
-            {/* 2. THE GLOBE CONTAINER (Shifted & Resized) */}
-            <div style={{
-                width: '100%',        // Fit the card width
-                height: '100%',       // Fit the card height
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                // If you still need to nudge it left/right, use transform:
-                transform: 'translateX(-1%)' // Moves globe slightly left. Change to positive to move right.
-            }}>
-                <Globe
-                    ref={globeEl}
-                    backgroundColor="rgba(0,0,0,0)" // Fully transparent
-                    globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-                    bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                    atmosphereColor="#3b82f6"
-                    atmosphereAltitude={0.25} // Reduced glow slightly
+    // 2. Resize Logic (The Fix)
+    const handleResize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight
+        });
+      }
+    };
 
-                    pointsData={upcomingEvents}
-                    pointLat="lat"
-                    pointLng="lng"
-                    pointColor="color"
-                    pointAltitude="alt"
-                    pointRadius={0.6}
+    // Initial measure
+    handleResize();
 
-                    ringsData={upcomingEvents}
-                    ringLat="lat"
-                    ringLng="lng"
-                    ringColor="color"
-                    ringMaxRadius={5}
-                    ringPropagationSpeed={2}
-                    ringRepeatPeriod={800}
-                />
-            </div>
-        </div>
-    );
+    // Listen for window resize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+      <Globe
+        ref={globeEl}
+        width={dimensions.width}   // Pass the dynamic width
+        height={dimensions.height} // Pass the dynamic height
+        
+        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+        
+        // Data Layers
+        pointsData={activeData}
+        pointLat="lat"
+        pointLng="lng"
+        pointColor="color"
+        pointAltitude={(d) => d.altitude || 0.1}
+        pointRadius={1.5}
+        
+        labelsData={activeData}
+        labelLat="lat"
+        labelLng="lng"
+        labelText="label"
+        labelSize={1.5}
+        labelDotRadius={0.5}
+        labelColor={() => 'rgba(255, 255, 255, 0.75)'}
+        labelResolution={2}
+        labelAltitude={(d) => (d.altitude || 0.1) + 0.1}
+
+        ringsData={markers ? [] : globeMarkers}
+        ringLat="lat"
+        ringLng="lng"
+        ringColor="color"
+        ringMaxRadius={5}
+        ringPropagationSpeed={2}
+        ringRepeatPeriod={1000}
+
+        atmosphereColor="#06b6d4"
+        atmosphereAltitude={0.2}
+        backgroundColor="rgba(0,0,0,0)"
+      />
+    </div>
+  );
 };
 
 export default GlobeView;
