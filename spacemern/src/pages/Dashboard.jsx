@@ -1,8 +1,10 @@
 // src/pages/Dashboard.jsx
-import React, { useState } from 'react'; // Import useState
-import { Satellite, Rocket, Globe, AlertTriangle, Sun, Activity, X, Calendar, MapPin } from 'lucide-react'; // Add X, Calendar, MapPin
+import React, { useState, useEffect } from 'react';
+import { Satellite, Rocket, Globe, AlertTriangle, Sun, Activity, X, Calendar, MapPin, RefreshCw } from 'lucide-react';
 import GlobeView from '../components/GlobeView';
-import { cosmicWeather, dashboardStats, upcomingEvents } from '../data/mockData';
+import { cosmicWeather as mockCosmicWeather, dashboardStats as mockDashboardStats, upcomingEvents } from '../data/mockData';
+import { fetchCosmicWeather } from '../services/nasaApi';
+import { fetchSatelliteStats } from '../services/satelliteApi';
 
 // Helper to render icons dynamically
 const getIcon = (name) => {
@@ -14,8 +16,190 @@ const getIcon = (name) => {
 };
 
 const Dashboard = () => {
-  // 1. ADD STATE FOR MODAL
+  // State for modal
   const [showEventsModal, setShowEventsModal] = useState(false);
+  
+  // State for cosmic weather
+  const [cosmicWeather, setCosmicWeather] = useState(mockCosmicWeather);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [lastWeatherUpdate, setLastWeatherUpdate] = useState(null);
+  
+  // State for satellite data
+  const [dashboardStats, setDashboardStats] = useState(mockDashboardStats);
+  const [satelliteMarkers, setSatelliteMarkers] = useState([]);
+  const [satelliteLoading, setSatelliteLoading] = useState(false);
+  const [lastSatelliteUpdate, setLastSatelliteUpdate] = useState(null);
+  
+  // Cache constants
+  const WEATHER_CACHE_KEY = 'cosmic_weather_data';
+  const WEATHER_TIMESTAMP_KEY = 'cosmic_weather_timestamp';
+  const SATELLITE_CACHE_KEY = 'satellite_data';
+  const SATELLITE_TIMESTAMP_KEY = 'satellite_timestamp';
+  const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+
+  // Check if cached weather data is still valid
+  const isWeatherCacheValid = () => {
+    const cachedTimestamp = sessionStorage.getItem(WEATHER_TIMESTAMP_KEY);
+    if (!cachedTimestamp) return false;
+    
+    const timeDiff = Date.now() - parseInt(cachedTimestamp);
+    return timeDiff < CACHE_DURATION;
+  };
+
+  // Check if cached satellite data is still valid
+  const isSatelliteCacheValid = () => {
+    const cachedTimestamp = sessionStorage.getItem(SATELLITE_TIMESTAMP_KEY);
+    if (!cachedTimestamp) return false;
+    
+    const timeDiff = Date.now() - parseInt(cachedTimestamp);
+    return timeDiff < CACHE_DURATION;
+  };
+
+  // Load weather from session storage
+  const loadWeatherFromCache = () => {
+    try {
+      const cachedData = sessionStorage.getItem(WEATHER_CACHE_KEY);
+      const cachedTimestamp = sessionStorage.getItem(WEATHER_TIMESTAMP_KEY);
+      
+      if (cachedData && cachedTimestamp) {
+        const parsedData = JSON.parse(cachedData);
+        setCosmicWeather(parsedData);
+        setLastWeatherUpdate(new Date(parseInt(cachedTimestamp)));
+        return true;
+      }
+    } catch (err) {
+      console.error('Error loading weather from cache:', err);
+    }
+    return false;
+  };
+
+  // Save weather to session storage
+  const saveWeatherToCache = (data, timestamp) => {
+    try {
+      sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(data));
+      sessionStorage.setItem(WEATHER_TIMESTAMP_KEY, timestamp.getTime().toString());
+    } catch (err) {
+      console.error('Error saving weather to cache:', err);
+    }
+  };
+
+  // Load satellite data from session storage
+  const loadSatelliteFromCache = () => {
+    try {
+      const cachedStats = sessionStorage.getItem(SATELLITE_CACHE_KEY);
+      const cachedTimestamp = sessionStorage.getItem(SATELLITE_TIMESTAMP_KEY);
+      
+      if (cachedStats && cachedTimestamp) {
+        const { stats, markers } = JSON.parse(cachedStats);
+        setDashboardStats(stats);
+        setSatelliteMarkers(markers || []);
+        setLastSatelliteUpdate(new Date(parseInt(cachedTimestamp)));
+        return true;
+      }
+    } catch (err) {
+      console.error('Error loading satellite data from cache:', err);
+    }
+    return false;
+  };
+
+  // Save satellite data to session storage
+  const saveSatelliteToCache = (stats, markers, timestamp) => {
+    try {
+      sessionStorage.setItem(SATELLITE_CACHE_KEY, JSON.stringify({ stats, markers }));
+      sessionStorage.setItem(SATELLITE_TIMESTAMP_KEY, timestamp.getTime().toString());
+    } catch (err) {
+      console.error('Error saving satellite data to cache:', err);
+    }
+  };
+
+  // Fetch cosmic weather from NASA API
+  const loadCosmicWeather = async () => {
+    // Check cache first
+    if (isWeatherCacheValid()) {
+      console.log('Using cached cosmic weather data');
+      const loaded = loadWeatherFromCache();
+      if (loaded) return;
+    }
+
+    setWeatherLoading(true);
+    
+    try {
+      const result = await fetchCosmicWeather();
+      
+      if (result.success && result.data) {
+        const updateTime = new Date();
+        setCosmicWeather(result.data);
+        setLastWeatherUpdate(updateTime);
+        saveWeatherToCache(result.data, updateTime);
+      } else {
+        // Fallback to mock data
+        setCosmicWeather(mockCosmicWeather);
+      }
+    } catch (err) {
+      console.error('Failed to load cosmic weather:', err);
+      setCosmicWeather(mockCosmicWeather);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
+  // Fetch satellite data
+  const loadSatelliteData = async () => {
+    // Check cache first
+    if (isSatelliteCacheValid()) {
+      console.log('Using cached satellite data');
+      const loaded = loadSatelliteFromCache();
+      if (loaded) return;
+    }
+
+    setSatelliteLoading(true);
+    
+    try {
+      const result = await fetchSatelliteStats();
+      
+      if (result.success) {
+        const updateTime = new Date();
+        
+        // Update dashboard stats with live satellite count
+        const updatedStats = mockDashboardStats.map(stat => {
+          if (stat.label === 'Active Satellites') {
+            return {
+              ...stat,
+              value: result.activeSatellites.toLocaleString()
+            };
+          }
+          return stat;
+        });
+        
+        setDashboardStats(updatedStats);
+        setSatelliteMarkers(result.satellites || []);
+        setLastSatelliteUpdate(updateTime);
+        saveSatelliteToCache(updatedStats, result.satellites, updateTime);
+      } else {
+        // Fallback to mock data
+        setDashboardStats(mockDashboardStats);
+      }
+    } catch (err) {
+      console.error('Failed to load satellite data:', err);
+      setDashboardStats(mockDashboardStats);
+    } finally {
+      setSatelliteLoading(false);
+    }
+  };
+
+  // Load weather and satellite data on mount and set up 2-hour refresh interval
+  useEffect(() => {
+    loadCosmicWeather();
+    loadSatelliteData();
+    
+    // Set up interval to refresh every 2 hours
+    const intervalId = setInterval(() => {
+      loadCosmicWeather();
+      loadSatelliteData();
+    }, CACHE_DURATION);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <div className="dashboard-page" style={{ position: 'relative' }}>
@@ -117,8 +301,20 @@ const Dashboard = () => {
           <div className="weather-title">
             <Sun className="weather-icon" color="#fbbf24" />
             <span className="weather-label">Cosmic Weather Report</span>
+            {weatherLoading && (
+              <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite', marginLeft: '8px' }} color="#06b6d4" />
+            )}
           </div>
-          <span className="badge badge-success">NORMAL</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className={`badge ${cosmicWeather.radiationLevel === 'Elevated' ? 'badge-warning' : 'badge-success'}`}>
+              {cosmicWeather.radiationLevel || 'NORMAL'}
+            </span>
+            {lastWeatherUpdate && (
+              <span style={{ fontSize: '10px', color: '#64748b' }}>
+                Updated {lastWeatherUpdate.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
         </div>
         <div className="weather-grid">
           <div className="weather-item">
@@ -132,6 +328,14 @@ const Dashboard = () => {
           <div className="weather-item">
             <div className="weather-value">Kp {cosmicWeather.kpIndex}</div>
             <div className="weather-name">Kp Index</div>
+          </div>
+          <div className="weather-item">
+            <div className="weather-value" style={{ color: '#fbbf24' }}>{cosmicWeather.solarFlareRisk}</div>
+            <div className="weather-name">Solar Flare Risk</div>
+          </div>
+          <div className="weather-item">
+            <div className="weather-value">{cosmicWeather.sunspotNumber}</div>
+            <div className="weather-name">Sunspots</div>
           </div>
         </div>
       </div>
@@ -151,11 +355,32 @@ const Dashboard = () => {
         }}>
           <div className="card-header" style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="card-icon cyan" style={{ fontSize: '16px', width: '32px', height: '32px' }}>🌍</span>
-            <span className="card-title" style={{ fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Real-Time Earth Monitoring</span>
+            <span className="card-title" style={{ fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Real-Time Satellite Tracking</span>
+            {satelliteLoading && (
+              <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite', marginLeft: 'auto' }} color="#06b6d4" />
+            )}
           </div>
 
           <div className="globe-container" style={{ flex: 1, minHeight: '200px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
-            <GlobeView />
+            {satelliteMarkers.length > 0 ? (
+              <GlobeView markers={satelliteMarkers} />
+            ) : (
+              <GlobeView />
+            )}
+            {lastSatelliteUpdate && (
+              <div style={{
+                position: 'absolute',
+                bottom: '8px',
+                right: '8px',
+                fontSize: '9px',
+                color: '#64748b',
+                background: 'rgba(15, 23, 42, 0.8)',
+                padding: '4px 8px',
+                borderRadius: '4px'
+              }}>
+                {satelliteMarkers.length} satellites tracked • Updated {lastSatelliteUpdate.toLocaleTimeString()}
+              </div>
+            )}
           </div>
         </div>
 
