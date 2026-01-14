@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import GlobeView from '../components/GlobeView';
 import { Satellite, Radio, RefreshCw } from 'lucide-react';
 
-const API_KEY = 'ASV4DW-QAW987-GLYFHG-5MXH';
-const BASE_URL = 'https://api.n2yo.com/rest/v1/satellite';
-const CORS_PROXY = 'https://api.allorigins.win/raw?url='; // CORS proxy to bypass browser restrictions
+const API_KEY = import.meta.env.VITE_N2YO_API_KEY;
+const BASE_URL = import.meta.env.VITE_N2YO_BASE_URL;
+const CORS_PROXY = import.meta.env.VITE_CORS_PROXY; // CORS proxy to bypass browser restrictions
 
 // Popular satellite NORAD IDs for tracking from various space agencies
 const SATELLITES = [
