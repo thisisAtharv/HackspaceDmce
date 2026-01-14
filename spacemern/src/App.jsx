@@ -68,7 +68,7 @@ const AppContent = () => {
           onLogout={handleLogout}
         />
         <main className="main-content">
-          {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
           {activeTab === 'missions' && <Missions />}
           {activeTab === 'impact' && <Impact />}
           {activeTab === 'learn' && <Learn />}
