@@ -1,12 +1,46 @@
-import React, { useState } from 'react';
-import { Rocket, Target, Calendar, Users, Filter, ChevronRight, X, Clock, MapPin, FileText } from 'lucide-react';
-import { missions } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Rocket, Target, Calendar, Users, Filter, ChevronRight, X, Clock, MapPin, FileText, RefreshCw } from 'lucide-react';
+import { missions as mockMissions } from '../data/mockData';
+import { fetchNASAMissions } from '../services/nasaApi';
 
 const Missions = () => {
   // --- STATE MANAGEMENT ---
   const [activeFilter, setActiveFilter] = useState('All'); // 'All', 'active', 'planned', 'completed'
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedMission, setSelectedMission] = useState(null); // For the Details Modal
+  const [missions, setMissions] = useState(mockMissions); // Mission data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+  const [lastUpdated, setLastUpdated] = useState(null); // Last update time
+
+  // --- FETCH NASA MISSIONS ON MOUNT ---
+  useEffect(() => {
+    loadMissions();
+  }, []);
+
+  const loadMissions = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await fetchNASAMissions();
+      
+      if (result.success && result.missions.length > 0) {
+        setMissions(result.missions);
+        setLastUpdated(new Date(result.lastUpdated));
+      } else {
+        // Fallback to mock data if API fails
+        setMissions(mockMissions);
+        setError('Using cached data. API unavailable.');
+      }
+    } catch (err) {
+      console.error('Failed to load missions:', err);
+      setMissions(mockMissions);
+      setError('Failed to fetch live data. Showing cached missions.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // --- FILTER LOGIC ---
   const filteredMissions = missions.filter(mission => {
@@ -126,10 +160,28 @@ const Missions = () => {
       <div className="mission-header-row">
         <div>
           <h1 className="page-title">Mission Registry</h1>
-          <p className="page-subtitle">Active and planned space exploration missions</p>
+          <p className="page-subtitle">
+            Active and planned space exploration missions
+            {lastUpdated && (
+              <span style={{ marginLeft: '10px', fontSize: '11px', color: '#64748b' }}>
+                • Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+          </p>
         </div>
-        <div className="mission-filters" style={{ position: 'relative' }}>
+        <div className="mission-filters" style={{ position: 'relative', display: 'flex', gap: '10px' }}>
           
+          {/* Refresh Button */}
+          <button 
+            className="btn btn-secondary"
+            onClick={loadMissions}
+            disabled={loading}
+            style={{ opacity: loading ? 0.6 : 1 }}
+          >
+            <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> 
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+
           {/* Filter Button */}
           <button 
             className={`btn ${showFilterMenu ? 'btn-primary' : 'btn-secondary'}`} 
@@ -169,6 +221,23 @@ const Missions = () => {
       </div>
 
       {/* Stats Row */}
+      {error && (
+        <div style={{
+          padding: '15px 20px',
+          background: 'rgba(251, 191, 36, 0.1)',
+          border: '1px solid rgba(251, 191, 36, 0.3)',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          color: '#fbbf24'
+        }}>
+          <span style={{ fontSize: '18px' }}>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
+
       <div className="mission-stats-grid">
         <div className="stat-box">
           <div className="stat-box-label">Active</div>
@@ -190,12 +259,28 @@ const Missions = () => {
         </div>
         <div className="stat-box">
           <div className="stat-box-label">Total Crew</div>
-          <div className="stat-box-value" style={{color: '#fbbf24'}}>12</div>
+          <div className="stat-box-value" style={{color: '#fbbf24'}}>
+            {missions.reduce((total, m) => total + (parseInt(m.crew) || 0), 0)}
+          </div>
         </div>
       </div>
 
       {/* Missions Grid */}
-      <div className="mission-grid">
+      {loading ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '60px 20px',
+          color: '#94a3b8'
+        }}>
+          <RefreshCw size={48} style={{ animation: 'spin 1s linear infinite', marginBottom: '20px', color: '#06b6d4' }} />
+          <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>Loading Mission Data</h3>
+          <p style={{ fontSize: '14px', color: '#64748b' }}>Fetching latest information from NASA...</p>
+        </div>
+      ) : (
+        <div className="mission-grid">
         {filteredMissions.map((mission) => (
           <div key={mission.id} className="mission-card">
             
@@ -263,7 +348,8 @@ const Missions = () => {
 
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
