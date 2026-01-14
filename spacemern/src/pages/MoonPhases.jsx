@@ -13,7 +13,7 @@ const MoonPhases = () => {
     if (d === 15) return { name: "Full Moon", illumination: "100%", type: "Full" };
     if (d < 22) return { name: "Waning Gibbous", illumination: `${Math.round(((30-d)/15)*100)}%`, type: "Waning" };
     if (d === 22) return { name: "Last Quarter", illumination: "50%", type: "Waning" };
-    return { name: "Waning Crescent", illumination: `${Math.round(((30-d)/15)*100)}%`, type: "Waning" };
+    return { name: "New Moon", illumination: `${Math.round(((30-d)/15)*100)}%`, type: "Waning" };
   };
 
   const phase = getPhaseData(day);

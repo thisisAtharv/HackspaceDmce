@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Rocket, Activity, BookOpen, Moon, Settings, LogOut, Satellite } from 'lucide-react';
+import { LayoutDashboard, Rocket, Activity, BookOpen, Moon, Settings, LogOut, Satellite, Calendar } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
   const navItems = [
@@ -46,6 +46,10 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           <div className={`nav-item ${activeTab === 'moon' ? 'active' : ''}`} onClick={() => setActiveTab('moon')}>
             <span className="nav-icon"><Moon size={18} /></span>
             <span className="nav-label">Moon Phases</span>
+          </div>
+          <div className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => setActiveTab('calendar')}>
+            <span className="nav-icon"><Calendar size={18} /></span>
+            <span className="nav-label">Event Calendar</span>
           </div>
           <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
             <span className="nav-icon"><Settings size={18} /></span>

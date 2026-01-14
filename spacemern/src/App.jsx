@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles/main.css';
 import './styles/App.css';
 import './styles/landing.css';
+
+// Context
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -15,21 +18,36 @@ import Impact from './pages/Impact';
 import Learn from './pages/Learn';
 import SatelliteTracker from './pages/SatelliteTracker';
 import MoonPhases from './pages/MoonPhases';
+import Calendar from './pages/Calendar';
 import Settings from './pages/Settings';
 
 
-const App = () => {
-  // Navigation State
+const AppContent = () => {
+  const { currentUser, logout } = useAuth();
   const [view, setView] = useState('landing'); // 'landing', 'login', 'signup', 'dashboard'
   const [activeTab, setActiveTab] = useState('dashboard'); // For sidebar navigation
 
+  // Update view based on authentication state
+  useEffect(() => {
+    if (currentUser) {
+      setView('dashboard');
+    } else {
+      setView('landing');
+    }
+  }, [currentUser]);
+
+  const handleLogout = async () => {
+    await logout();
+    setView('landing');
+  };
+
   // --- VIEW 1: LANDING PAGE ---
-  if (view === 'landing') {
+  if (view === 'landing' && !currentUser) {
     return <Landing onNavigate={(page) => setView(page)} />;
   }
 
   // --- VIEW 2: AUTH PAGE (Login/Signup) ---
-  if (view === 'login' || view === 'signup') {
+  if ((view === 'login' || view === 'signup') && !currentUser) {
     return (
       <Auth
         initialMode={view}
@@ -39,23 +57,37 @@ const App = () => {
   }
 
   // --- VIEW 3: DASHBOARD (Logged In) ---
+  if (currentUser) {
+    return (
+      <div className="app-container">
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onLogout={handleLogout}
+        />
+        <main className="main-content">
+          {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'missions' && <Missions />}
+          {activeTab === 'impact' && <Impact />}
+          {activeTab === 'learn' && <Learn />}
+          {activeTab === 'moon' && <MoonPhases />}
+          {activeTab === 'calendar' && <Calendar />}
+          {activeTab === 'settings' && <Settings />}
+          {activeTab === 'tracker' && <SatelliteTracker />}
+        </main>
+      </div>
+    );
+  }
+
+  // Loading or default state
+  return null;
+};
+
+const App = () => {
   return (
-    <div className="app-container">
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onLogout={() => setView('landing')}
-      />
-      <main className="main-content">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'missions' && <Missions />}
-        {activeTab === 'impact' && <Impact />}
-        {activeTab === 'learn' && <Learn />}
-        {activeTab === 'moon' && <MoonPhases />}
-        {activeTab === 'settings' && <Settings />}
-        {activeTab === 'tracker' && <SatelliteTracker />}
-      </main>
-    </div>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

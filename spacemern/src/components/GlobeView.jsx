@@ -51,8 +51,16 @@ const GlobeView = ({ markers }) => {
         pointLat="lat"
         pointLng="lng"
         pointColor="color"
-        pointAltitude={(d) => d.altitude || 0.1}
-        pointRadius={1.5}
+        pointAltitude={(d) => {
+          // Scale altitude for visualization - satellites beyond 1000km get smaller rods
+          const alt = d.altitude || 0.1;
+          return alt > 1 ? 0.15 : alt; // Cap high-altitude satellites at 0.15 for visibility
+        }}
+        pointRadius={(d) => {
+          // Adjust point size based on altitude - higher = smaller but still visible
+          const alt = d.altitude || 0.1;
+          return alt > 1 ? 0.8 : 1.5; // Smaller radius for high-altitude satellites
+        }}
         
         labelsData={activeData}
         labelLat="lat"
@@ -62,7 +70,10 @@ const GlobeView = ({ markers }) => {
         labelDotRadius={0.5}
         labelColor={() => 'rgba(255, 255, 255, 0.75)'}
         labelResolution={2}
-        labelAltitude={(d) => (d.altitude || 0.1) + 0.1}
+        labelAltitude={(d) => {
+          const alt = d.altitude || 0.1;
+          return alt > 1 ? 0.2 : (alt + 0.1); // Keep labels close to surface for high-altitude satellites
+        }}
 
         ringsData={markers ? [] : globeMarkers}
         ringLat="lat"
