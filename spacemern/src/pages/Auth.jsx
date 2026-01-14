@@ -42,9 +42,7 @@ const Auth = ({ initialMode = 'login', onLogin }) => {
       
       if (result.success) {
         // Navigate to dashboard after successful authentication
-        if (onLogin) {
-          onLogin(<Dashboard />);
-        }
+        onLogin(Dashboard);
       } else {
         // Format error messages to be user-friendly
         let errorMessage = result.error || 'Authentication failed';
