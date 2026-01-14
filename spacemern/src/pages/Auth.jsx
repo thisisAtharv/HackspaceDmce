@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Rocket, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import '../styles/landing.css';
 import Dashboard from './Dashboard';
 

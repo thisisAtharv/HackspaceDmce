@@ -4,7 +4,8 @@ import './styles/App.css';
 import './styles/landing.css';
 
 // Context
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
 
 // Components
 import Sidebar from './components/Sidebar';
