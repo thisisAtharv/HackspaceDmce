@@ -27,13 +27,14 @@ const AppContent = () => {
   const [view, setView] = useState('landing'); // 'landing', 'login', 'signup', 'dashboard'
   const [activeTab, setActiveTab] = useState('dashboard'); // For sidebar navigation
 
-  // Update view based on authentication state
+  // Update view based on authentication state - only on initial load and logout
   useEffect(() => {
     if (currentUser) {
+      // User is authenticated, go to dashboard
       setView('dashboard');
-    } else {
-      setView('landing');
     }
+    // Note: We don't set view to 'landing' here when currentUser is null
+    // because that would interrupt the login/signup flow
   }, [currentUser]);
 
   const handleLogout = async () => {

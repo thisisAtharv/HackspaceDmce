@@ -52,6 +52,11 @@ const SatelliteTracker = () => {
   const observerLng = -98.0;
   const observerAlt = 0;
 
+  // Cache duration: 1 hour in milliseconds
+  const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+  const CACHE_KEY = 'satellite_tracking_data';
+  const CACHE_TIMESTAMP_KEY = 'satellite_tracking_timestamp';
+
   // Fetch satellite position
   const fetchSatellitePosition = async (satellite) => {
     try {
@@ -90,8 +95,55 @@ const SatelliteTracker = () => {
     }
   };
 
+  // Check if cached data is still valid (less than 1 hour old)
+  const isCacheValid = () => {
+    const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+    if (!cachedTimestamp) return false;
+    
+    const timeDiff = Date.now() - parseInt(cachedTimestamp);
+    return timeDiff < CACHE_DURATION;
+  };
+
+  // Load data from cache
+  const loadFromCache = () => {
+    try {
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+      
+      if (cachedData && cachedTimestamp) {
+        const parsedData = JSON.parse(cachedData);
+        setSatelliteData(parsedData);
+        setLastUpdate(new Date(parseInt(cachedTimestamp)));
+        return true;
+      }
+    } catch (err) {
+      console.error('Error loading from cache:', err);
+    }
+    return false;
+  };
+
+  // Save data to cache
+  const saveToCache = (data, timestamp) => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(CACHE_TIMESTAMP_KEY, timestamp.getTime().toString());
+    } catch (err) {
+      console.error('Error saving to cache:', err);
+    }
+  };
+
   // Fetch all satellites
-  const fetchAllSatellites = async () => {
+  const fetchAllSatellites = async (forceRefresh = false) => {
+    // Check cache first unless force refresh
+    if (!forceRefresh && isCacheValid()) {
+      console.log('Using cached satellite data');
+      const loaded = loadFromCache();
+      if (loaded) {
+        setIsLoading(false);
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
     
@@ -103,8 +155,10 @@ const SatelliteTracker = () => {
       if (validResults.length === 0) {
         setError('Unable to fetch satellite data. Please check your API connection.');
       } else {
+        const updateTime = new Date();
         setSatelliteData(validResults);
-        setLastUpdate(new Date());
+        setLastUpdate(updateTime);
+        saveToCache(validResults, updateTime);
       }
     } catch (err) {
       setError('Failed to fetch satellite data: ' + err.message);
@@ -174,6 +228,31 @@ const SatelliteTracker = () => {
                 <RefreshCw size={14} className="animate-spin" color="#06b6d4" />
               )}
            </div>
+           <button
+              onClick={() => fetchAllSatellites(true)}
+              disabled={isLoading}
+              style={{
+                position: 'absolute',
+                top: 20,
+                right: 20,
+                zIndex: 10,
+                padding: '8px 16px',
+                background: 'rgba(6, 182, 212, 0.1)',
+                border: '1px solid #06b6d4',
+                borderRadius: '6px',
+                color: '#06b6d4',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '12px',
+                fontWeight: '500',
+                opacity: isLoading ? 0.5 : 1
+              }}
+           >
+              <RefreshCw size={14} style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
+              Force Refresh
+           </button>
            
            {/* Globe Container: Fills the card */}
            <div style={{ width: '100%', height: '100%' }}>
