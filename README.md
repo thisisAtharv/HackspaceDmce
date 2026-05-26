@@ -37,4 +37,12 @@ SpaceScope is a comprehensive space monitoring dashboard designed to bring advan
 
 ---
 
+## 👥 The Team (DevNinjas)
+- Atharv Gangawane
+- Parth Inamdar
+- Prakyat Shetty
+- Aditya Maskare
+
+---
+
 *Created for monitoring Earth, Satellites, and Deep Space missions.*
